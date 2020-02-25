@@ -1,0 +1,83 @@
+#Last Monday night
+
+import cv2
+import PIL.Image
+from io import BytesIO
+import IPython.display
+
+from IPython.display import clear_output
+print('hi')
+import serial #need for ev3 talk
+import imutils
+
+import numpy as np #useful math/array stuff
+import matplotlib.pyplot as plt
+import time
+
+def array_to_image(a, fmt='jpeg'): #jpeg vs png???
+    #Create binary stream object
+    f = BytesIO()
+    #Convert array to binary stream object
+    PIL.Image.fromarray(a).save(f, fmt)
+    
+    return IPython.display.Image(data=f.getvalue())
+
+# Function to read the frame form camera
+def get_frame(cam):
+    # Capture frame-by-frame
+    ret, frame = cam.read()
+    crop = frame[1:300,170:370]
+    #crop = vis[y1:y2,x1:x2] cropping image
+    return crop
+
+# Display the image
+d1 = IPython.display.display("Your image displayed here!", display_id=1)
+# Start video capture 
+cam = cv2.VideoCapture(0)
+
+for i in range(100):
+    # Grab the frame
+    frame = get_frame(cam)
+
+
+    # Change the color to RGB
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    #need this for histogram
+    img = get_frame(cam)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    # Resize the image to 200px
+    frame = imutils.resize(frame, width=200, inter=cv2.INTER_LINEAR)
+
+    #Call the function to convert array data to image
+    frame = array_to_image(frame)
+
+    #New things DF
+    color = ('b','g','r')
+
+    for i,col in enumerate(color):
+        histr = cv2.calcHist([img],[i],None,[256],[0,256])
+        #plt.plot(histr,color = col)
+        plt.xlim([0,256])
+    #plt.show()
+
+    blockColor = ''
+
+    #is it red - looks at a specific spot in the array to see if block is red
+    for i in histr[12:35]:
+        #print(i)
+        if i >= 1200:
+            #blockColor = 'red'
+            s=serial.Serial("/dev/serial0",9600,timeout=2)  #This send info the EV3
+            s.write("y".encode()) #to yes write to EV3
+            break
+        if i == histr[35]:
+            s=serial.Serial("/dev/serial0",9600,timeout=2)
+            s.write("n".encode()) #to no write to EV3
+    
+    
+    
+
+    #Let's see the image below
+    d1.update(frame)
