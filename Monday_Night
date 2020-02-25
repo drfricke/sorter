@@ -1,0 +1,69 @@
+import cv2
+import PIL.Image
+from io import BytesIO
+import IPython.display
+
+from IPython.display import clear_output
+
+import imutils
+
+import numpy as np #useful math/array stuff
+import time
+
+def array_to_image(a, fmt='jpeg'): #jpeg vs png???
+    #Create binary stream object
+    f = BytesIO()
+    #Convert array to binary stream object
+    PIL.Image.fromarray(a).save(f, fmt)
+    
+    return IPython.display.Image(data=f.getvalue())
+
+# Function to read the frame form camera
+def get_frame(cam):
+    # Capture frame-by-frame
+    ret, frame = cam.read()
+    #flip image for natural viewing
+    #frame = cv2.flip(frame, 1)
+    return frame
+
+# Display the image
+d1 = IPython.display.display("Your image displayed here!", display_id=1)
+
+# Start video capture 
+cam = cv2.VideoCapture(0)
+
+# Grab the frame 
+frame = get_frame(cam)
+
+# Change the color to RGB
+frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+# Resize the image to 200px
+frame = imutils.resize(frame, width=200, inter=cv2.INTER_LINEAR)
+
+#Call the function to convert array data to image
+frame = array_to_image(frame)
+
+#not working here
+img = array_to_image(frame)
+
+# Release the camera resource
+cam.release()
+
+#New things DF
+color = ('b','g','r')
+
+for i,col in enumerate(color):
+    histr = cv2.calcHist([img],[i],None,[256],[0,256])
+    plt.plot(histr,color = col)
+    plt.xlim([0,256])
+plt.show()
+
+import serial
+s=serial.Serial("/dev/serial0",9600,timeout=2)
+s.write("n".encode()) #to write to EV3
+s.read(s.inWaiting()) # to read everything from EV3 .. you can also read line
+
+
+#Let's see the image below
+d1.update(frame)
