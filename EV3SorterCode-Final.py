@@ -9,11 +9,10 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 
 # Write your program here
 
-#start up stuff
+#start up stuff- Ports, Comm, int motors/sensors
 from pybricks.parameters import Color, Port
 from pybricks.iodevices import AnalogSensor, UARTDevice
 uart = UARTDevice(Port.S1, 9600, timeout=2000)
-#uart.write("HelloRpi".encode()) 
 
 beltmotor = Motor(Port.A)
 booter = Motor(Port.B)
@@ -21,6 +20,10 @@ button = TouchSensor(Port.S4)
 
 
 #ev3 waits for UART byte - once it sees, it reads it
+# 1st if: checks to see if one byte is on the buffer connection
+  # Nested ifs: If red uses piston to knock piece off
+                #if not: Keeps moving the belt
+  # Last if corrects piston, Sometimes the encoder drifts/friction in the actual system prevent proper correction. Minor though.
 
 while True:
     if uart.waiting() >= 1:
